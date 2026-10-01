@@ -1,0 +1,19 @@
+{
+  "extends": ["@cult-frog/tooling/biome/base"],
+  "overrides": [
+    {
+      // Type tests assert through declarations and sample values that are never
+      // read at runtime -- the assignability check *is* the assertion -- and they
+      // deliberately exercise `any` and exhaustive switches without a default.
+      "includes": ["**/*.test-d.ts"],
+      "linter": {
+        "rules": {
+          "correctness": { "noUnusedVariables": "off" },
+          "suspicious": { "noExplicitAny": "off" },
+          "style": { "useDefaultSwitchClause": "off" },
+          "security": { "noSecrets": "off" }
+        }
+      }
+    }
+  ]
+}

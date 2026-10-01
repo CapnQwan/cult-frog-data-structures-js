@@ -1,0 +1,9 @@
+{
+  "extends": "@cult-frog/tooling/tsconfig/build.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "exclude": ["**/*.test.ts", "**/*.test-d.ts", "**/__tests__/**"]
+}

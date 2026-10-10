@@ -1,6 +1,6 @@
 {
   "name": "@cult-frog/data-structures",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A TypeScript library for common reusable data structures",
   "license": "MIT",
   "author": "Quin Partridge",

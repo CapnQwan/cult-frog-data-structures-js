@@ -4,6 +4,8 @@ All notable changes to this package are documented here. The format is based on 
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-10-10
+
 ### Added
 
 - `SparseSet`, which stores values under small integer indices with constant-time insert, lookup and removal, and keeps them in a dense array for fast iteration.

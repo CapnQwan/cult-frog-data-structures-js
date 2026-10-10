@@ -10,4 +10,4 @@ permissions:
 
 jobs:
   publish:
-    uses: CapnQwan/cult-frog-tooling-js/.github/workflows/reusable-publish.yml@main
+    uses: CapnQwan/cult-frog-tooling-js/.github/workflows/reusable-publish.yml@workflows-v0

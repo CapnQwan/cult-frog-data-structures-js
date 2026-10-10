@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@cult-frog/primitives':
-        specifier: ^0.1.0
-        version: 0.1.0
       '@cult-frog/types':
         specifier: ^1.0.0
         version: 1.0.0
@@ -98,10 +95,6 @@ packages:
     engines: {node: '>=14.21.3'}
     cpu: [x64]
     os: [win32]
-
-  '@cult-frog/primitives@0.1.0':
-    resolution: {integrity: sha512-eT4H0gzB9Di273y3nkg2oKnEtZQKFCSJkqhelALIeqWczaNUH1UoxEgcrOPia/OaodYrP8BsHCRHc5IGyHMPDA==}
-    engines: {node: '>=20.19'}
 
   '@cult-frog/tooling@0.1.1':
     resolution: {integrity: sha512-x7leGytEe29awlq66/7dt4sDyxXIiqbPrHIv7OxdPDzPfe3LJlptJL4VE+vtwmqiRBAffDT9KeH/xyJKN/eeHA==}
@@ -716,8 +709,6 @@ snapshots:
 
   '@biomejs/cli-win32-x64@2.5.15':
     optional: true
-
-  '@cult-frog/primitives@0.1.0': {}
 
   '@cult-frog/tooling@0.1.1(vitest@5.0.3(@types/node@22.20.4)(vite@8.3.1(@types/node@22.20.4)(yaml@2.9.1)))':
     dependencies:

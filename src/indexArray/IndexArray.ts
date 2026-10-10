@@ -4,7 +4,11 @@
  * A plain array accepts any number as an index, so a value of the wrong kind (an entity
  * handle where a slot was meant) compiles and silently reads the wrong entry. Fixing the
  * index type makes that a compile error. The methods are plain array accesses, so the
- * wrapper costs nothing in hot loops once inlined.
+ * wrapper is cheap but not free: in a tight loop it is measurably slower than indexing an
+ * array directly. It slows further when one program stores several kinds of value (numbers,
+ * objects, strings) in IndexedArrays, because they all share the same `get` and `set` code.
+ * Inside a structure whose own methods already enforce the index type, a plain or typed
+ * array is faster.
  *
  * Indices should be small, non-negative integers: the backing array grows to the largest
  * index written, with gaps between.

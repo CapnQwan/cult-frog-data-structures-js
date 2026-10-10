@@ -68,7 +68,6 @@
     "vitest": "^5.0.0"
   },
   "dependencies": {
-    "@cult-frog/primitives": "^0.1.0",
     "@cult-frog/types": "^1.0.0"
   }
 }

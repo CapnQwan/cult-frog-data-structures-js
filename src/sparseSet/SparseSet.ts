@@ -1,6 +1,8 @@
-import { isNil, isNotNil } from '@cult-frog/primitives';
+/** Marks an index with no value in the sparse array. */
+const EMPTY = -1;
 
-import { IndexedArray } from '../indexArray/IndexArray.js';
+/** The sparse array's length the first time it grows. */
+const MIN_SPARSE_LENGTH = 16;
 
 /**
  * A SparseSet is a data structure that provides efficient set operations with O(1) time complexity
@@ -21,7 +23,7 @@ import { IndexedArray } from '../indexArray/IndexArray.js';
  */
 export class SparseSet<I extends number, T> {
   private _dense: T[] = [];
-  private _sparse = new IndexedArray<I, number>();
+  private _sparse = new Int32Array(0);
   private _inverse: I[] = [];
 
   /**
@@ -32,14 +34,23 @@ export class SparseSet<I extends number, T> {
     return this._dense.length;
   }
 
+  /** The position of `sparseIndex` in the dense array, or `EMPTY` if it holds no value. */
+  private _denseIndexOf(sparseIndex: I): number {
+    const sparse = this._sparse;
+    // Check the bounds before reading: once a typed array read goes out of bounds, V8
+    // switches that read to a slower mode for good, which roughly halves lookup speed.
+    if (sparseIndex >= 0 && sparseIndex < sparse.length) return sparse[sparseIndex] ?? EMPTY;
+    return EMPTY;
+  }
+
   /**
    * Retrieves the value associated with a given sparse index.
    * @param sparseIndex The external index to look up.
    * @returns The value if found, otherwise undefined.
    */
   public get(sparseIndex: I): T | undefined {
-    const denseIndex = this._sparse.get(sparseIndex);
-    if (isNil(denseIndex)) return undefined;
+    const denseIndex = this._denseIndexOf(sparseIndex);
+    if (denseIndex === EMPTY) return undefined;
     return this._dense[denseIndex];
   }
 
@@ -49,9 +60,10 @@ export class SparseSet<I extends number, T> {
    * @param sparseIndex The external index where the value should be stored.
    * @param value The value to store.
    * @returns True if the insertion was successful, false if the index was already occupied.
+   * @throws {RangeError} If `sparseIndex` is not a non-negative integer.
    */
   public insert(sparseIndex: I, value: T): boolean {
-    if (isNotNil(this._sparse.get(sparseIndex))) return false;
+    if (this._denseIndexOf(sparseIndex) !== EMPTY) return false;
 
     this._insert(sparseIndex, value);
     return true;
@@ -66,11 +78,12 @@ export class SparseSet<I extends number, T> {
    * @param sparseIndex The external index to write.
    * @param value The value to store.
    * @returns True if the value was newly inserted, false if it replaced one.
+   * @throws {RangeError} If `sparseIndex` is not a non-negative integer.
    */
   public set(sparseIndex: I, value: T): boolean {
-    const denseIndex = this._sparse.get(sparseIndex);
+    const denseIndex = this._denseIndexOf(sparseIndex);
 
-    if (isNotNil(denseIndex)) {
+    if (denseIndex !== EMPTY) {
       this._dense[denseIndex] = value;
       return false;
     }
@@ -80,10 +93,26 @@ export class SparseSet<I extends number, T> {
   }
 
   private _insert(sparseIndex: I, value: T): void {
+    // A typed array silently ignores writes to an invalid index, which would leave the
+    // value in the dense array with no way to look it up.
+    if (!Number.isInteger(sparseIndex) || sparseIndex < 0)
+      throw new RangeError(`Index ${sparseIndex} is not a non-negative integer`);
+    if (sparseIndex >= this._sparse.length) this._growSparse(sparseIndex + 1);
+
     const denseSize = this.size;
-    this._sparse.set(sparseIndex, denseSize);
+    this._sparse[sparseIndex] = denseSize;
     this._inverse[denseSize] = sparseIndex;
     this._dense[denseSize] = value;
+  }
+
+  /** Grows the sparse array, doubling, until it is at least `minimum` long. */
+  private _growSparse(minimum: number): void {
+    let length = Math.max(this._sparse.length, MIN_SPARSE_LENGTH);
+    while (length < minimum) length *= 2;
+
+    const next = new Int32Array(length).fill(EMPTY);
+    next.set(this._sparse);
+    this._sparse = next;
   }
 
   /**
@@ -93,8 +122,8 @@ export class SparseSet<I extends number, T> {
    * @returns The removed value, or undefined if the index was not found.
    */
   public extract(sparseIndex: I): T | undefined {
-    const denseIndex = this._sparse.get(sparseIndex);
-    if (isNil(denseIndex)) return undefined;
+    const denseIndex = this._denseIndexOf(sparseIndex);
+    if (denseIndex === EMPTY) return undefined;
 
     const value = this._dense[denseIndex];
     const lastDenseIndex = this.size - 1;
@@ -104,12 +133,12 @@ export class SparseSet<I extends number, T> {
       this._dense.copyWithin(denseIndex, lastDenseIndex);
       this._inverse.copyWithin(denseIndex, lastDenseIndex);
       const moved = this._inverse[denseIndex];
-      if (isNotNil(moved)) this._sparse.set(moved, denseIndex);
+      if (moved !== undefined) this._sparse[moved] = denseIndex;
     }
 
     this._dense.pop();
     this._inverse.pop();
-    this._sparse.set(sparseIndex, undefined);
+    this._sparse[sparseIndex] = EMPTY;
     return value;
   }
 
@@ -119,11 +148,12 @@ export class SparseSet<I extends number, T> {
    * @param sparseIndex The external index to replace or insert at.
    * @param value The new value.
    * @returns The old value if it was replaced, or undefined if a new value was inserted.
+   * @throws {RangeError} If `sparseIndex` is not a non-negative integer.
    */
   public replace(sparseIndex: I, value: T): T | undefined {
-    const denseIndex = this._sparse.get(sparseIndex);
-    if (isNil(denseIndex)) {
-      this.insert(sparseIndex, value);
+    const denseIndex = this._denseIndexOf(sparseIndex);
+    if (denseIndex === EMPTY) {
+      this._insert(sparseIndex, value);
       return undefined;
     }
 
@@ -139,7 +169,7 @@ export class SparseSet<I extends number, T> {
    * @returns True if the index is occupied, false otherwise.
    */
   public has(sparseIndex: I): boolean {
-    return this._sparse.get(sparseIndex) !== undefined;
+    return this._denseIndexOf(sparseIndex) !== EMPTY;
   }
 
   /**
@@ -162,11 +192,12 @@ export class SparseSet<I extends number, T> {
 
   /**
    * Removes all elements from the set.
-   * This operation is O(1) and allocation-free, as it simply sets the lengths of the arrays to 0.
+   * This operation is O(size) and allocation-free: it resets only the indices in use, and
+   * keeps the sparse array's storage for reuse.
    */
   public clear(): void {
+    for (const sparseIndex of this._inverse) this._sparse[sparseIndex] = EMPTY;
     this._dense.length = 0;
-    this._sparse.clear();
     this._inverse.length = 0;
   }
 }

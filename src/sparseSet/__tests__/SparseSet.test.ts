@@ -276,6 +276,57 @@ describe('SparseSet', () => {
     });
   });
 
+  describe('invalid indices', () => {
+    const invalid = [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY];
+
+    it.each(invalid)('throws a RangeError when inserting at %s', (index) => {
+      const set = new SparseSet<TSlot, string>();
+
+      expect(() => set.insert(slot(index), 'value')).toThrow(RangeError);
+      expect(() => set.set(slot(index), 'value')).toThrow(RangeError);
+      expect(() => set.replace(slot(index), 'value')).toThrow(RangeError);
+    });
+
+    it.each(invalid)('changes nothing when inserting at %s fails', (index) => {
+      const set = createSet(['a', 'b']);
+
+      expect(() => set.insert(slot(index), 'value')).toThrow(RangeError);
+
+      expect(set.size).toBe(2);
+      expect(set.toArray()).toEqual(['a', 'b']);
+      expectConsistent(set);
+    });
+
+    it.each(invalid)('reads %s as missing', (index) => {
+      const set = createSet(['a', 'b']);
+
+      expect(set.has(slot(index))).toBe(false);
+      expect(set.get(slot(index))).toBeUndefined();
+      expect(set.extract(slot(index))).toBeUndefined();
+      expect(set.size).toBe(2);
+    });
+  });
+
+  describe('growth', () => {
+    it('keeps every value reachable as larger indices are added', () => {
+      const set = new SparseSet<TSlot, number>();
+      const indices = [0, 15, 16, 17, 31, 32, 100, 1000, 4097];
+
+      for (const index of indices) set.insert(slot(index), index * 10);
+
+      for (const index of indices) expect(set.get(slot(index))).toBe(index * 10);
+      expect(set.has(slot(50))).toBe(false);
+      expectConsistent(set);
+    });
+
+    it('reads indices past the largest one inserted as missing', () => {
+      const set = createSet(['a']);
+
+      expect(set.has(slot(1_000_000))).toBe(false);
+      expect(set.get(slot(1_000_000))).toBeUndefined();
+    });
+  });
+
   describe('entries and toArray', () => {
     it('return the live arrays, which change as the set does', () => {
       const set = new SparseSet<TSlot, string>();
@@ -309,6 +360,22 @@ describe('SparseSet', () => {
       expect(set.toArray()).toEqual([]);
       expect(set.has(slot(0))).toBe(false);
       expect(set.get(slot(2))).toBeUndefined();
+    });
+
+    it('removes values at large and scattered indices', () => {
+      const set = new SparseSet<TSlot, string>();
+      set.insert(slot(3), 'three');
+      set.insert(slot(500), 'five hundred');
+      set.insert(slot(9000), 'nine thousand');
+
+      set.clear();
+
+      expect(set.has(slot(3))).toBe(false);
+      expect(set.has(slot(500))).toBe(false);
+      expect(set.has(slot(9000))).toBe(false);
+      expect(set.insert(slot(500), 'again')).toBe(true);
+      expect(set.size).toBe(1);
+      expectConsistent(set);
     });
 
     it('leaves the set usable afterwards', () => {

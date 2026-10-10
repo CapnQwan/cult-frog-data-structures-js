@@ -7,6 +7,13 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@cult-frog/primitives':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@cult-frog/types':
+        specifier: ^1.0.0
+        version: 1.0.0
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.5.13
@@ -92,11 +99,19 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@cult-frog/primitives@0.1.0':
+    resolution: {integrity: sha512-eT4H0gzB9Di273y3nkg2oKnEtZQKFCSJkqhelALIeqWczaNUH1UoxEgcrOPia/OaodYrP8BsHCRHc5IGyHMPDA==}
+    engines: {node: '>=20.19'}
+
   '@cult-frog/tooling@0.1.1':
     resolution: {integrity: sha512-x7leGytEe29awlq66/7dt4sDyxXIiqbPrHIv7OxdPDzPfe3LJlptJL4VE+vtwmqiRBAffDT9KeH/xyJKN/eeHA==}
     engines: {node: '>=20.19'}
     peerDependencies:
       vitest: ^5.0.0
+
+  '@cult-frog/types@1.0.0':
+    resolution: {integrity: sha512-t8gjJ2o2QEWGvokZQzscQK8W+z3qunRzCplIHAWRsus402uh6OeZEUZDIedX+WuC118cwd6BK16X4VWI2xirtQ==}
+    engines: {node: '>=20.19'}
 
   '@jridgewell/resolve-uri@3.1.2':
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
@@ -702,9 +717,13 @@ snapshots:
   '@biomejs/cli-win32-x64@2.5.15':
     optional: true
 
+  '@cult-frog/primitives@0.1.0': {}
+
   '@cult-frog/tooling@0.1.1(vitest@5.0.3(@types/node@22.20.4)(vite@8.3.1(@types/node@22.20.4)(yaml@2.9.1)))':
     dependencies:
       vitest: 5.0.3(@types/node@22.20.4)(vite@8.3.1(@types/node@22.20.4)(yaml@2.9.1))
+
+  '@cult-frog/types@1.0.0': {}
 
   '@jridgewell/resolve-uri@3.1.2': {}
 

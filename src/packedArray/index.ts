@@ -1,1 +1,1 @@
-export { PackedBuffer } from './PackedArray.js';
+export { PackedBuffer } from './PackedBuffer.js';
